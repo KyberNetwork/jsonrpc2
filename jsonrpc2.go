@@ -281,7 +281,19 @@ func (e *Error) SetError(v interface{}) {
 
 // Error implements the Go error interface.
 func (e *Error) Error() string {
-	return fmt.Sprintf("jsonrpc2: code %v message: %s", e.Code, e.Message)
+	var dataMsg string
+	if e.Data != nil {
+		var data interface{}
+		if errU := json.Unmarshal(*e.Data, &data); errU == nil {
+			dataMsg = fmt.Sprintf("%+v", data)
+		} else {
+			dataMsg = fmt.Sprintf("%s", *e.Data)
+		}
+	}
+	if dataMsg == "" {
+		return fmt.Sprintf("jsonrpc2: code %v, message: %s", e.Code, e.Message)
+	}
+	return fmt.Sprintf("jsonrpc2: code %v, message: %s, additional data: %s", e.Code, e.Message, dataMsg)
 }
 
 // Errors defined in the JSON-RPC spec. See
